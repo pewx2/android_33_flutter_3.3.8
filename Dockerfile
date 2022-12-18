@@ -1,4 +1,6 @@
-FROM --platform=linux/amd64 ubuntu:22.04
+FROM --platform=linux/amd64 ubuntu:20.04
+
+USER root
 
 ENV VERSION_TOOLS "8512546"
 
@@ -46,22 +48,16 @@ RUN curl -s https://dl.google.com/android/repository/commandlinetools-linux-${VE
 ADD packages.txt /sdk
 RUN sdkmanager --package_file=/sdk/packages.txt
 
-RUN groupadd -r -g 1441 flutter && useradd --no-log-init -r -u 1441 -g flutter -m flutter
+ARG flutter_version=3.3.8
 
-USER flutter:flutter
+ENV FLUTTER_HOME=${HOME}/sdks/flutter \
+    FLUTTER_VERSION=$flutter_version
+ENV FLUTTER_ROOT=$FLUTTER_HOME
 
-WORKDIR /home/flutter
+ENV PATH ${PATH}:${FLUTTER_HOME}/bin:${FLUTTER_HOME}/bin/cache/dart-sdk/bin
 
-ARG flutterVersion=3.3.8
+RUN git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git ${FLUTTER_HOME}
 
-ADD https://api.github.com/repos/flutter/flutter/compare/${flutterVersion}...${flutterVersion} /dev/null
-
-RUN git clone https://github.com/flutter/flutter.git -b ${flutterVersion} flutter-sdk --depth 1
-
-RUN flutter-sdk/bin/flutter precache \
-    && flutter-sdk/bin/flutter config --no-analytics 
-
-ENV PATH="$PATH:/home/flutter/flutter-sdk/bin"
-ENV PATH="$PATH:/home/flutter/flutter-sdk/bin/cache/dart-sdk/bin"
-
-RUN yes | flutter doctor --android-licenses && flutter doctor 
+RUN yes | flutter doctor --android-licenses \
+    && flutter doctor \
+    && chown -R root:root ${FLUTTER_HOME}
