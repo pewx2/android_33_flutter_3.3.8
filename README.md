@@ -1,9 +1,10 @@
-# docker_flutter_gitlab
+# About
 
 Flutter + Android docker image for Gitlab CI.
 
-# example
+# Example
 
+```
 build_android_apk:
   stage: build_android_apk
   image:
@@ -26,3 +27,4 @@ build_android_apk:
     expire_in: 30 days
   only:
     - merge_requests
+````
